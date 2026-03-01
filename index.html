@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appell — знаем в лицо</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0b0d;
+      --bg-glass: rgba(18, 20, 24, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.06);
+      --glass-highlight: rgba(255, 255, 255, 0.03);
+      --text-primary: #f0f1f3;
+      --text-secondary: rgba(240, 241, 243, 0.65);
+      --text-muted: rgba(240, 241, 243, 0.4);
+      --accent: rgba(147, 197, 253, 0.35);
+      --blur: 20px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-deep);
+      min-height: 100vh;
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* Subtle gradient orbs for depth */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -40%;
+      left: -20%;
+      width: 60%;
+      height: 80%;
+      background: radial-gradient(ellipse, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -30%;
+      right: -15%;
+      width: 50%;
+      height: 70%;
+      background: radial-gradient(ellipse, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .creator-link {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.5rem;
+      z-index: 100;
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .creator-link:hover {
+      color: var(--text-secondary);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4rem 1.5rem 2rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .title {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.35rem;
+    }
+
+    .tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      color: var(--text-secondary);
+    }
+
+    .panels-grid {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .panels-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-header {
+      padding: 1.1rem 1.5rem 0;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .panel-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .chat-panel {
+      width: 100%;
+      max-width: 720px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: 
+        0 0 0 1px var(--glass-highlight) inset,
+        0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 560px;
+      max-height: 78vh;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 1.5rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      max-width: 92%;
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message .bubble {
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+
+    .message.user .bubble {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+    }
+
+    .message.assistant .bubble {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+    }
+
+    .message .meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .message.user .meta { text-align: right; }
+
+    .nicknames-block {
+      margin-top: 0.6rem;
+      padding: 0.75rem 1rem;
+      background: rgba(147, 197, 253, 0.08);
+      border: 1px solid rgba(147, 197, 253, 0.15);
+      border-radius: 12px;
+    }
+
+    .nicknames-block .label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .nicknames-block ul {
+      list-style: none;
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+    }
+
+    .nicknames-block li {
+      padding: 0.2rem 0;
+    }
+
+    .chat-input-area {
+      padding: 1.25rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .upload-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .file-input-wrap {
+      position: relative;
+    }
+
+    .file-input-wrap input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .btn-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-upload:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .pending-files {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      min-height: 48px;
+      padding: 0.75rem 1.15rem;
+      font-family: inherit;
+      font-size: 1.05rem;
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-send {
+      padding: 0.75rem 1.5rem;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .typing {
+      padding: 1rem 1.25rem;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .error-bubble {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      font-size: 1.05rem;
+      color: #fca5a5;
+    }
+
+    .paste-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <a href="https://discord.com" class="creator-link" target="_blank" rel="noopener" title="Discord: @eppv">@eppv</a>
+
+  <main class="page">
+    <header class="hero">
+      <h1 class="title">Appell</h1>
+      <p class="tagline">знаем в лицо</p>
+    </header>
+
+    <section class="panels-grid">
+      <section class="chat-panel" id="panel-formation">
+        <div class="panel-header">
+          <h2 class="panel-title">В строю</h2>
+          <p class="panel-subtitle">Скриншоты/кадры строя, кого считаем присутствующими.</p>
+        </div>
+        <div class="chat-messages" id="messagesFormation"></div>
+        <div class="chat-input-area">
+          <div class="upload-row">
+            <div class="file-input-wrap">
+              <input type="file" id="fileInputFormation" accept="image/*,video/*" multiple>
+              <button type="button" class="btn-upload" id="btnUploadFormation">📎 Файл / видео</button>
+            </div>
+            <span class="paste-hint">или вставьте из буфера (Ctrl+V)</span>
+            <span class="pending-files" id="pendingFilesFormation"></span>
+          </div>
+          <div class="input-row">
+            <button type="button" class="btn-send" id="btnSendFormation" title="Отправить">отправить</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-panel" id="panel-online">
+        <div class="panel-header">
+          <h2 class="panel-title">Онлайн</h2>
+          <p class="panel-subtitle">Скриншоты/кадры списка онлайн, кто сейчас в игре.</p>
+        </div>
+        <div class="chat-messages" id="messagesOnline"></div>
+        <div class="chat-input-area">
+          <div class="upload-row">
+            <div class="file-input-wrap">
+              <input type="file" id="fileInputOnline" accept="image/*,video/*" multiple>
+              <button type="button" class="btn-upload" id="btnUploadOnline">📎 Файл / видео</button>
+            </div>
+            <span class="paste-hint">или вставьте из буфера (Ctrl+V)</span>
+            <span class="pending-files" id="pendingFilesOnline"></span>
+          </div>
+          <div class="input-row">
+            <button type="button" class="btn-send" id="btnSendOnline" title="Отправить">отправить</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-panel" id="panel-diff">
+        <div class="panel-header">
+          <h2 class="panel-title">Отсутствующие в строю</h2>
+          <p class="panel-subtitle">Те, кто есть онлайн, но не зафиксирован в строю.</p>
+        </div>
+        <div class="chat-messages" id="diffContainer">
+          <div class="nicknames-block" style="margin-top: 0;">
+            <div class="label" id="diffSummary">Пока нет данных.</div>
+            <ul id="diffList"></ul>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const panels = {
+      formation: {
+        messagesEl: document.getElementById('messagesFormation'),
+        btnSend: document.getElementById('btnSendFormation'),
+        fileInput: document.getElementById('fileInputFormation'),
+        btnUpload: document.getElementById('btnUploadFormation'),
+        pendingEl: document.getElementById('pendingFilesFormation'),
+        pendingFiles: [],
+        typingId: 'typing-formation',
+      },
+      online: {
+        messagesEl: document.getElementById('messagesOnline'),
+        btnSend: document.getElementById('btnSendOnline'),
+        fileInput: document.getElementById('fileInputOnline'),
+        btnUpload: document.getElementById('btnUploadOnline'),
+        pendingEl: document.getElementById('pendingFilesOnline'),
+        pendingFiles: [],
+        typingId: 'typing-online',
+      },
+    };
+
+    const diffSummaryEl = document.getElementById('diffSummary');
+    const diffListEl = document.getElementById('diffList');
+
+    const formationSet = new Set();
+    const onlineSet = new Set();
+    const formationCanon = new Map();
+    const onlineCanon = new Map();
+
+    function normalizeNick(name) {
+      return name.trim().toLowerCase();
+    }
+
+    function addNicknamesToSet(nicknames, targetSet, canonMap) {
+      nicknames.forEach((raw) => {
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) return;
+        const norm = normalizeNick(trimmed);
+        if (!targetSet.has(norm)) {
+          targetSet.add(norm);
+          canonMap.set(norm, trimmed);
+        }
+      });
+    }
+
+    function updateDifferenceView() {
+      const missing = [];
+      onlineSet.forEach((norm) => {
+        if (!formationSet.has(norm)) {
+          missing.push(onlineCanon.get(norm) || norm);
+        }
+      });
+
+      diffListEl.innerHTML = '';
+
+      if (!missing.length) {
+        diffSummaryEl.textContent =
+          'Пока нет никнеймов, которые были бы онлайн, но не зафиксированы в строю.';
+        return;
+      }
+
+      diffSummaryEl.textContent = `Найдено отсутствующих в строю: ${missing.length}`;
+      missing
+        .slice()
+        .sort((a, b) => a.localeCompare(b, 'ru'))
+        .forEach((name) => {
+          const li = document.createElement('li');
+          li.textContent = name;
+          diffListEl.appendChild(li);
+        });
+    }
+
+    function updatePendingUI(panel) {
+      panel.pendingEl.textContent = panel.pendingFiles.length
+        ? `Выбрано: ${panel.pendingFiles.length}`
+        : '';
+    }
+
+    let currentPastePanel = panels.formation;
+
+    Object.values(panels).forEach((panel) => {
+      panel.fileInput.addEventListener('change', () => {
+        panel.pendingFiles = Array.from(panel.fileInput.files);
+        updatePendingUI(panel);
+      });
+
+      panel.btnUpload.addEventListener('click', () => panel.fileInput.click());
+    });
+
+    document.getElementById('panel-formation').addEventListener('click', () => {
+      currentPastePanel = panels.formation;
+    });
+    document.getElementById('panel-online').addEventListener('click', () => {
+      currentPastePanel = panels.online;
+    });
+
+    document.addEventListener('paste', (e) => {
+      const panel = currentPastePanel;
+      if (!panel) return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageFiles = [];
+      for (const item of items) {
+        if (item.type && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        panel.pendingFiles.push(...imageFiles);
+        updatePendingUI(panel);
+      }
+    });
+
+    function addMessage(container, role, content, nicknames = null, isError = false) {
+      const wrap = document.createElement('div');
+      wrap.className = `message ${role}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = role === 'user' ? 'Вы' : 'Appell';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      if (isError) bubble.classList.add('error-bubble');
+      bubble.textContent = content;
+
+      wrap.appendChild(meta);
+      wrap.appendChild(bubble);
+
+      if (nicknames && nicknames.length > 0) {
+        const block = document.createElement('div');
+        block.className = 'nicknames-block';
+        block.innerHTML = '<span class="label">Найденные ники:</span><ul></ul>';
+        const ul = block.querySelector('ul');
+        nicknames.forEach((n) => {
+          const li = document.createElement('li');
+          li.textContent = n;
+          ul.appendChild(li);
+        });
+        wrap.appendChild(block);
+      }
+
+      container.appendChild(wrap);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function setTyping(container, id, show) {
+      let el = document.getElementById(id);
+      if (show) {
+        if (!el) {
+          el = document.createElement('div');
+          el.id = id;
+          el.className = 'message assistant';
+          el.innerHTML = '<div class="meta">Appell</div><div class="typing">Анализирую...</div>';
+          container.appendChild(el);
+        }
+        el.style.display = 'flex';
+      } else if (el) {
+        el.style.display = 'none';
+      }
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function extractFrameFromVideo(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.onloadeddata = () => {
+          video.currentTime = 0.5;
+        };
+        video.onseeked = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0);
+          canvas.toBlob(blob => {
+            URL.revokeObjectURL(url);
+            resolve(blob);
+          }, 'image/jpeg', 0.85);
+        };
+        video.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Не удалось прочитать видео'));
+        };
+        video.src = url;
+      });
+    }
+
+    async function sendThrough(panel, { defaultPrompt, targetSet, canonMap }) {
+      const hasFiles = panel.pendingFiles.length > 0;
+
+      if (!hasFiles) return;
+
+      const userContent = defaultPrompt;
+      addMessage(panel.messagesEl, 'user', userContent);
+
+      const filesToSend = [...panel.pendingFiles];
+      panel.pendingFiles = [];
+      panel.fileInput.value = '';
+      updatePendingUI(panel);
+
+      setTyping(panel.messagesEl, panel.typingId, true);
+      panel.btnSend.disabled = true;
+
+      try {
+        const formData = new FormData();
+        formData.set('message', userContent);
+
+        for (let i = 0; i < filesToSend.length; i++) {
+          const file = filesToSend[i];
+          if (file.type.startsWith('video/')) {
+            const frameBlob = await extractFrameFromVideo(file);
+            formData.append('images', frameBlob, `frame_${i}.jpg`);
+          } else if (file.type.startsWith('image/')) {
+            formData.append('images', file, file.name);
+          }
+        }
+
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          addMessage(panel.messagesEl, 'assistant', data.error || 'Ошибка при анализе.', null, true);
+          return;
+        }
+
+        const reply = data.reply || data.text || 'Никнеймы не найдены.';
+        const nicknames = data.nicknames || [];
+
+        addMessage(panel.messagesEl, 'assistant', reply, nicknames.length ? nicknames : null);
+
+        if (nicknames.length) {
+          addNicknamesToSet(nicknames, targetSet, canonMap);
+          updateDifferenceView();
+        }
+      } catch (err) {
+        addMessage(
+          panel.messagesEl,
+          'assistant',
+          'Не удалось связаться с сервером. Запустите бэкенд и попробуйте снова.',
+          null,
+          true
+        );
+      } finally {
+        setTyping(panel.messagesEl, panel.typingId, false);
+        panel.btnSend.disabled = false;
+      }
+    }
+
+    panels.formation.btnSend.addEventListener('click', () =>
+      sendThrough(panels.formation, {
+        defaultPrompt: 'Проанализируй строй и выведи список никнеймов присутствующих игроков.',
+        targetSet: formationSet,
+        canonMap: formationCanon,
+      })
+    );
+
+    panels.online.btnSend.addEventListener('click', () =>
+      sendThrough(panels.online, {
+        defaultPrompt: 'Проанализируй список онлайн игроков и выведи их никнеймы.',
+        targetSet: onlineSet,
+        canonMap: onlineCanon,
+      })
+    );
+  </script>
+</body>
+</html>
